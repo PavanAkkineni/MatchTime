@@ -150,6 +150,9 @@ def traverse_and_parse(root_dir, timestamp_key):
     """
     all_data = []
     for subdir, dirs, files in os.walk(root_dir):
+        print("subdir",subdir)
+        print("d", dirs)
+        print(files)
         for file in files:
             if file == 'Labels-caption.json' or file == "Labels-caption_with_gt.json" or file == "Labels-caption_event_aligned_with_contrastive.json":
                 league = os.path.basename(os.path.dirname(subdir))
@@ -157,4 +160,3 @@ def traverse_and_parse(root_dir, timestamp_key):
                 file_path = os.path.join(subdir, file)
                 all_data.extend(parse_labels_caption(file_path, league, game, timestamp_key))
     return all_data
-

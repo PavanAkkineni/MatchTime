@@ -27,9 +27,11 @@ def train(args):
                             window=args.window, fps=args.fps, tokenizer_name=args.tokenizer_name, timestamp_key=args.train_timestamp_key)
     val_dataset = MatchVoice_Dataset(feature_root=args.feature_root, ann_root=args.val_ann_root,
                             window=args.window, fps=args.fps, tokenizer_name=args.tokenizer_name, timestamp_key=args.val_timestamp_key)
-
-    train_data_loader = DataLoader(train_dataset, batch_size=args.train_batch_size, num_workers=args.train_num_workers, drop_last=False, shuffle=True, pin_memory=True, collate_fn=train_dataset.collater)
-    val_data_loader = DataLoader(val_dataset, batch_size=args.val_batch_size, num_workers=args.val_num_workers, drop_last=True, shuffle=True, pin_memory=True, collate_fn=train_dataset.collater)
+    print(train_dataset)
+    #return 0
+    train_data_loader = DataLoader(train_dataset, batch_size=1, num_workers=0, drop_last=False, shuffle=True, pin_memory=True, collate_fn=train_dataset.collater)
+    #return 0
+    val_data_loader = DataLoader(val_dataset, batch_size=1, num_workers=0, drop_last=True, shuffle=True, pin_memory=True, collate_fn=train_dataset.collater)
     print("===== Video features data loaded! =====")
     model = matchvoice_model(llm_ckpt=args.tokenizer_name, tokenizer_ckpt=args.tokenizer_name ,window=args.window, num_query_tokens=args.num_query_tokens, num_video_query_token=args.num_video_query_token, num_features=args.num_features, device=args.device).to(args.device)
     if args.continue_train:
@@ -43,10 +45,20 @@ def train(args):
         model.train()
         train_loss_accum = 0.0
         train_pbar = tqdm(train_data_loader, desc=f'Epoch {epoch+1}/{args.num_epoch} Training')
+        cnt = 0
         for samples in train_pbar:
-
+            cnt = cnt+1
+            if cnt >= 10:
+                break
             optimizer.zero_grad()
             try:
+                print(samples)
+                for key , value in samples:
+                    print("hi")
+                    if key != "features":
+                        print(samples["key"])
+                
+                break
                 loss = model(samples)
                 loss.backward()
                 optimizer.step()
@@ -55,13 +67,25 @@ def train(args):
                 avg_train_loss = train_loss_accum / len(train_data_loader)
             except:
                 pass
-
+            break
+        #break
+        file_path = f"{args.model_output_dir}/model_nwew_save_{epoch+1}.pth"
+        save_matchvoice_model(model, file_path)
+        print('break')
+        #return 0
+        #break
         model.eval()
         val_CIDEr = 0.0
         val_pbar = tqdm(val_data_loader, desc=f'Epoch {epoch+1}/{args.num_epoch} Validation')
         with torch.no_grad():
+            cnt1 = 0
             for samples in val_pbar:
+                cnt1 = cnt1+1
+                if cnt1 >=5:
+                    break
                 temp_res_text, anonymized = model(samples, True)
+                print("hello")
+                print(temp_res_text, anonymized)
                 cur_CIDEr_score = eval_cider(temp_res_text,anonymized)
                 val_CIDEr += sum(cur_CIDEr_score)/len(cur_CIDEr_score)
                 val_pbar.set_postfix({"Scores": f"|C:{sum(cur_CIDEr_score)/len(cur_CIDEr_score):.4f}"})
@@ -69,14 +93,15 @@ def train(args):
         avg_val_CIDEr = val_CIDEr / len(val_data_loader)
         print(f"Epoch {epoch+1} Summary: Average Training Loss: {avg_train_loss:.3f}, Average Validation scores: C:{avg_val_CIDEr*100:.3f}")
         
-        if epoch % 5 == 0:
-            file_path = f"{args.model_output_dir}/model_save_{epoch+1}.pth"
+        if epoch % 1 == 0:
+            file_path = f"{args.model_output_dir}/model_nwew_save_{epoch+1}.pth"
             save_matchvoice_model(model, file_path)
 
         if avg_val_CIDEr > max_val_CIDEr:
             max_val_CIDEr = avg_val_CIDEr
-            file_path = f"{args.model_output_dir}/model_save_best_val_CIDEr.pth"
+            file_path = f"{args.model_output_dir}/model_save_best_new_val_CIDEr.pth"
             save_matchvoice_model(model, file_path)
+        break
 
 def save_matchvoice_model(model, file_path):
     state_dict = model.cpu().state_dict()
@@ -106,7 +131,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_batch_size", type=int, default=32)
     parser.add_argument("--train_num_workers", type=int, default=32)
     parser.add_argument("--train_timestamp_key", type=str, default="gameTime")
-
+    
     parser.add_argument("--val_ann_root", type=str, default="./dataset/MatchTime/valid")
     parser.add_argument("--val_batch_size", type=int, default=20)
     parser.add_argument("--val_num_workers", type=int, default=32)
@@ -125,7 +150,7 @@ if __name__ == "__main__":
     parser.add_argument("--continue_train", type=bool, default=False)
     parser.add_argument("--pre_max_CIDEr", type=float, default=0.0)
     parser.add_argument("--pre_epoch", type=int, default=0)
-    parser.add_argument("--load_ckpt", type=str, default="./ckpt/model_save_best_val_CIDEr.pth")
+    parser.add_argument("--load_ckpt", type=str, default="./ckpt/CLIP_matchvoice.pth")
 
 
     

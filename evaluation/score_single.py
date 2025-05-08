@@ -55,10 +55,13 @@ def calculate_metrics(csv_file_path):
         for i, row in enumerate(reader):
             references[i] = [row[5]]  # Ground truth in the 6th column (index 5)
             hypotheses[i] = [row[6]]  # Predicted caption in the 7th column (index 6)
-
+    print(references)
+    print("fdsf")
+    print(" -------------------------------------  ")
+    print(hypotheses)
     # Calculate BLEU scores
     bleu4_score, _ = bleu4_scorer.compute_score(references, hypotheses)
-
+    #return 0
     # Calculate METEOR scores
     meteor_score, _ = meteor_scorer.compute_score(references, hypotheses)
 
@@ -88,7 +91,7 @@ def calculate_metrics(csv_file_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Calculate metrics from a CSV file.")
-    parser.add_argument("--csv_path", type=str, default="./inference_result/sample.csv", help="Path to the CSV file containing the data.")
+    parser.add_argument("--csv_path", type=str, default="/work/users/a/k/akkineni/Matchtime/MatchTime/models/test_scores/outputfile - Sheet1 (1).csv", help="Path to the CSV file containing the data.")
     args = parser.parse_args()
     results = calculate_metrics(args.csv_path)
     print(results)

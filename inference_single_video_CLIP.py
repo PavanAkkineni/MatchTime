@@ -61,27 +61,46 @@ def predict_single_video_CLIP(video_path, predict_model, visual_encoder, size, f
         print("Features of this video loaded with shape of:", features.shape)
     except:
         print("Error with loading:", video_path)
-
+    
+    tot_frames = features.shape[0]
+    commentary = []
+    i = 0
+    while tot_frames>12:
+        
+        sample = {
+            "features": features[i:i+12].unsqueeze(dim=0),
+            "labels": None,
+            "attention_mask": None,
+            "input_ids": None
+        }
+    
+        # Doing prediction:
+        comment = predict_model(sample)
+        commentary.append(comment)
+        i = i+12
+        tot_frames = tot_frames-12
     sample = {
-        "features": features.unsqueeze(dim=0),
-        "labels": None,
-        "attention_mask": None,
-        "input_ids": None
-    }
-
+            "features": features[i:].unsqueeze(dim=0),
+            "labels": None,
+            "attention_mask": None,
+            "input_ids": None
+        }
+    
     # Doing prediction:
     comment = predict_model(sample)
-    print("The commentary is:", comment)
+    commentary.append(comment)
+    
+    print("The commentary is:", commentary)
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process video files for feature extraction.')
-    parser.add_argument('--video_path', type=str, default="./examples/eng.mkv", help='Path to the soccer game video clip.')
+    parser.add_argument('--video_path', type=str, default="/work/users/a/k/akkineni/Matchtime/MatchTime/models/1min30sec/2015-02-21 - 18-00 Swansea 2 - 1 Manchester United_1734_1831_soccer-ball.mkv", help='Path to the soccer game video clip.')
     parser.add_argument('--device', type=str, default="cuda:0", help='Device to extract.')
     parser.add_argument('--size', type=int, default=224, help='Size to which each video frame is resized.')
     parser.add_argument('--fps', type=int, default=2, help='Frames per second to sample from the video.')
-    parser.add_argument("--tokenizer_name", type=str, default="meta-llama/Meta-Llama-3-8B", help="LLM checkpoints, use path in your computer is fine as well")
+    parser.add_argument("--tokenizer_name", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct", help="LLM checkpoints, use path in your computer is fine as well")
     parser.add_argument("--model_ckpt", type=str, default="./ckpt/CLIP_matchvoice.pth")
     parser.add_argument("--num_query_tokens", type=int, default=32)
     parser.add_argument("--num_video_query_token", type=int, default=32)

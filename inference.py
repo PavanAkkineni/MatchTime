@@ -47,15 +47,17 @@ def predict(args):
     with open(args.csv_output_path, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(headers)
-
+    print("hi")
     # predict process
     with torch.no_grad():
         for samples in tqdm(test_data_loader):
             all_predictions = []
+            print("hi1")
+            print(all_predictions)
             for _ in range(args.generate_num):
                 predicted_res = predict_model(samples)
                 all_predictions.append(predicted_res)
-
+            
             caption_info = samples["caption_info"]
             with open(args.csv_output_path, 'a', newline='') as file:
                 writer = csv.writer(file)
@@ -66,8 +68,8 @@ def predict(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a model with FRANZ dataset.")
     parser.add_argument("--feature_root", type=str, default="./features/baidu_soccer_embeddings")
-    parser.add_argument("--ann_root", type=str, default="./dataset/SN-Caption-test-align")
-    parser.add_argument("--model_ckpt", type=str, default="./ckpt/models_ckpt/baidu/model_save_best_CIDEr.pth")
+    parser.add_argument("--ann_root", type=str, default="/work/users/a/k/akkineni/Matchtime/MatchTime/dataset/MatchTime/train")
+    parser.add_argument("--model_ckpt", type=str, default="./ckpt/CLIP_matchvoice.pth")
     parser.add_argument("--window", type=float, default=15)
     parser.add_argument("--tokenizer_name", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct", help="LLM checkpoints, use path in your computer is fine as well")
     parser.add_argument("--batch_size", type=int, default=60)
@@ -76,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_video_query_token", type=int, default=32)
     parser.add_argument("--num_features", type=int, default=512)
     parser.add_argument("--generate_num", type=int, default=1, help="You can determine how many sentences you want to comment (on the same video clip) here.")
-    parser.add_argument("--csv_output_path", type=str, default="./inference_result/predict_baidu_window_15.csv", help="the path to the output predictions")
+    parser.add_argument("--csv_output_path", type=str, default="./inference_result/new.csv", help="the path to the output predictions")
     parser.add_argument("--device", type=str, default="cuda:0")
     parser.add_argument("--fps", type=int, default=2, help="the FPS of your feature")
     

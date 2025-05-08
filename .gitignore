@@ -1,8 +1,23 @@
-# ignore everything 
-
+# Ignore everything by default
 *
 
-# but not these 
+# Allow only important lightweight file types
 !*.py
-
+!*.txt
+!*.md
+!*.yaml
+# Keep folders so Git can see files inside them
 !*/
+
+# Optional: always keep .gitignore itself
+!.gitignore
+
+# Optional: keep requirements and setup scripts
+!requirements.txt
+!environment.yml
+!setup.py
+
+# Optional: keep LICENSE or README
+!README.md
+!LICENSE
+
